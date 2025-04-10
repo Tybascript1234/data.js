@@ -74,31 +74,69 @@
     lightbulb: '<path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/>'
   };
 
-function showAllIcons() {
-      const container = document.getElementById('can-icon');
-      container.innerHTML = ''; // تنظيف القديم
 
-      for (const [name, path] of Object.entries(icons)) {
+  function createIconElement(iconName, path) {
+    const div = document.createElement('div');
+    div.className = 'Canyon-icon';
+    div.style.display = 'inline-block';
+    div.style.margin = '10px';
+    div.style.textAlign = 'center';
+    
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('width', '48');
+    svg.setAttribute('height', '48');
+    svg.setAttribute('fill', 'currentColor');
+    svg.innerHTML = path;
+    
+    const span = document.createElement('span');
+    span.style.display = 'block';
+    span.style.marginTop = '5px';
+    span.style.fontSize = '12px';
+    span.textContent = iconName;
+    
+    div.appendChild(svg);
+    div.appendChild(span);
+    
+    return div;
+  }
+
+  function injectIcons() {
+    // الطريقة الحالية لحقن الأيقونات الفردية
+    const elements = document.querySelectorAll('.Canyon-icon');
+    elements.forEach(el => {
+      const iconName = el.textContent.trim().toLowerCase();
+      const path = icons[iconName];
+      if (path) {
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.setAttribute('viewBox', '0 0 24 24');
-        svg.setAttribute('width', '24');
-        svg.setAttribute('height', '24');
-        svg.setAttribute('style', 'margin:8px; fill:currentColor; vertical-align:middle;');
+        svg.setAttribute('fill', 'currentColor');
+        svg.setAttribute('aria-hidden', 'true');
         svg.innerHTML = path;
 
-        const label = document.createElement('div');
-        label.textContent = name;
-        label.style = 'text-align:center; font-size:12px; margin-top:2px;';
-
-        const wrapper = document.createElement('div');
-        wrapper.style = 'display:inline-block; width:60px; margin:10px; text-align:center;';
-        wrapper.appendChild(svg);
-        wrapper.appendChild(label);
-
-        container.appendChild(wrapper);
+        el.textContent = '';
+        el.appendChild(svg);
       }
+    });
+    
+    // طريقة جديدة لعرض جميع الأيقونات في العنصر canyon-icons
+    const canyonIconsElement = document.getElementById('can-icon');
+    if (canyonIconsElement) {
+      canyonIconsElement.innerHTML = '';
+      canyonIconsElement.style.display = 'flex';
+      canyonIconsElement.style.flexWrap = 'wrap';
+      canyonIconsElement.style.justifyContent = 'center';
+      
+      Object.entries(icons).forEach(([name, path]) => {
+        const iconElement = createIconElement(name, path);
+        canyonIconsElement.appendChild(iconElement);
+      });
     }
+  }
 
-    // إظهار الأيقونات مباشرة عند تحميل السكربت
-    document.addEventListener('DOMContentLoaded', showAllIcons);
-  })();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', injectIcons);
+  } else {
+    injectIcons();
+  }
+})();

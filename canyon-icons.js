@@ -60,38 +60,50 @@
     };
 
    
-    // Initialize Canyon Icons
-    function initCanyonIcons() {
-        const icons = document.querySelectorAll('.Canyon-icon');
+  // Initialize Canyon Icons
+  function initCanyonIcons() {
+    const icons = document.querySelectorAll('.Canyon-icon');
+    
+    icons.forEach(icon => {
+        const iconName = icon.getAttribute('data-icon');
+        const iconPath = iconPaths[iconName];
         
-        icons.forEach(icon => {
-            const iconName = icon.getAttribute('data-icon');
-            const iconPath = iconPaths[iconName];
+        if (iconPath) {
+            // Create SVG element
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("viewBox", "0 0 512 512"); // Changed to 512x512 for better scaling
+            svg.setAttribute("fill", "currentColor");
+            svg.style.width = '100%'; // Make SVG responsive
+            svg.style.height = '100%'; // Make SVG responsive
             
-            if (iconPath) {
-                // Create SVG element
-                const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-                svg.setAttribute("viewBox", "0 0 24 24");
-                svg.setAttribute("fill", "currentColor");
-                
-                // Create path element
-                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                path.setAttribute("d", iconPath);
-                
-                // Append path to SVG
-                svg.appendChild(path);
-                
-                // Clear existing content and append SVG
-                icon.innerHTML = '';
-                icon.appendChild(svg);
-                
-                // Add default class for styling
-                icon.classList.add('canyon-icon-loaded');
-            } else {
-                console.warn(`Canyon Icon: Icon "${iconName}" not found.`);
+            // Create path element
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", iconPath);
+            
+            // Append path to SVG
+            svg.appendChild(path);
+            
+            // Clear existing content and append SVG
+            icon.innerHTML = '';
+            icon.appendChild(svg);
+            
+            // Add default class for styling
+            icon.classList.add('canyon-icon-loaded');
+            
+            // Add default styles if none exist
+            if (!icon.hasAttribute('style')) {
+                icon.style.display = 'inline-flex';
+                icon.style.alignItems = 'center';
+                icon.style.justifyContent = 'center';
+                icon.style.width = '1em';
+                icon.style.height = '1em';
+                icon.style.fontSize = '24px'; // Default size
             }
-        });
-    }
+        } else {
+            console.warn(`Canyon Icon: Icon "${iconName}" not found.`);
+        }
+    });
+}
 
     // Initialize when DOM is loaded
     if (document.readyState === 'loading') {

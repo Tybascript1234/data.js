@@ -74,30 +74,31 @@
     lightbulb: '<path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/>'
   };
 
-   const container = document.getElementById("can-icon");
-    if (container) {
-      container.innerHTML = ""; // clear existing content if any
+function showAllIcons() {
+      const container = document.getElementById('can-icon');
+      container.innerHTML = ''; // تنظيف القديم
 
-      Object.entries(icons).forEach(([name, path]) => {
-        const wrapper = document.createElement("div");
-        wrapper.style.display = "inline-block";
-        wrapper.style.margin = "10px";
-        wrapper.style.textAlign = "center";
-
-        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        svg.setAttribute("viewBox", "0 0 24 24");
-        svg.setAttribute("width", "40");
-        svg.setAttribute("height", "40");
+      for (const [name, path] of Object.entries(icons)) {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('width', '24');
+        svg.setAttribute('height', '24');
+        svg.setAttribute('style', 'margin:8px; fill:currentColor; vertical-align:middle;');
         svg.innerHTML = path;
 
-        const label = document.createElement("div");
+        const label = document.createElement('div');
         label.textContent = name;
-        label.style.fontSize = "12px";
-        label.style.marginTop = "4px";
+        label.style = 'text-align:center; font-size:12px; margin-top:2px;';
 
+        const wrapper = document.createElement('div');
+        wrapper.style = 'display:inline-block; width:60px; margin:10px; text-align:center;';
         wrapper.appendChild(svg);
         wrapper.appendChild(label);
+
         container.appendChild(wrapper);
-      });
+      }
     }
+
+    // إظهار الأيقونات مباشرة عند تحميل السكربت
+    document.addEventListener('DOMContentLoaded', showAllIcons);
   })();

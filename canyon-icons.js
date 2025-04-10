@@ -5,8 +5,11 @@
 // Example: <span class="Canyon-icon" data-icon="home"></span>
 
 (function() {
-    'use strict';
+'use strict';
 
+    // Cache busting - change this version when updating icons
+    const CACHE_VERSION = '1.0.0';
+    const STORAGE_KEY = 'canyon-icons-cache';
     // Canyon Icons Dictionary
     const iconPaths = {
         // Basic icons
@@ -60,108 +63,164 @@
     };
 
    
-  // Initialize Canyon Icons
-  function initCanyonIcons() {
-    const icons = document.querySelectorAll('.Canyon-icon');
+ // Initialize Canyon Icons with cache management
+ function initCanyonIcons() {
+    // Clear old cache if version changed
+    const cachedVersion = localStorage.getItem(`${STORAGE_KEY}-version`);
+    if (cachedVersion !== CACHE_VERSION) {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.setItem(`${STORAGE_KEY}-version`, CACHE_VERSION);
+    }
+
+    // Try to load from cache first
+    const cachedIcons = localStorage.getItem(STORAGE_KEY);
+    if (cachedIcons) {
+        try {
+            const parsedCache = JSON.parse(cachedIcons);
+            if (parsedCache.version === CACHE_VERSION) {
+                Object.assign(iconPaths, parsedCache.icons);
+                renderIcons();
+                return;
+            }
+        } catch (e) {
+            console.warn('Failed to parse cached icons', e);
+        }
+    }
+
+    // If no cache or invalid, load fresh and cache
+    renderIcons();
+    cacheIcons();
+    
+    // Optional: Fetch latest icons from server (for future updates)
+    fetchLatestIcons();
+}
+
+function renderIcons() {
+    const icons = document.querySelectorAll('.Canyon-icon:not(.canyon-icon-loaded)');
     
     icons.forEach(icon => {
         const iconName = icon.getAttribute('data-icon');
         const iconPath = iconPaths[iconName];
         
         if (iconPath) {
-            // Create SVG element
-            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-            svg.setAttribute("viewBox", "0 0 512 512"); // Changed to 512x512 for better scaling
-            svg.setAttribute("fill", "currentColor");
-            svg.style.width = '100%'; // Make SVG responsive
-            svg.style.height = '100%'; // Make SVG responsive
-            
-            // Create path element
-            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            path.setAttribute("d", iconPath);
-            
-            // Append path to SVG
-            svg.appendChild(path);
-            
-            // Clear existing content and append SVG
-            icon.innerHTML = '';
-            icon.appendChild(svg);
-            
-            // Add default class for styling
-            icon.classList.add('canyon-icon-loaded');
-            
-            // Add default styles if none exist
-            if (!icon.hasAttribute('style')) {
-                icon.style.display = 'inline-flex';
-                icon.style.alignItems = 'center';
-                icon.style.justifyContent = 'center';
-                icon.style.width = '1em';
-                icon.style.height = '1em';
-                icon.style.fontSize = '24px'; // Default size
-            }
+            createIconElement(icon, iconPath);
         } else {
             console.warn(`Canyon Icon: Icon "${iconName}" not found.`);
+            // Mark as loaded anyway to avoid repeated warnings
+            icon.classList.add('canyon-icon-loaded');
         }
     });
 }
 
-    // Initialize when DOM is loaded
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initCanyonIcons);
-    } else {
-        initCanyonIcons();
+function createIconElement(icon, pathData) {
+    // Create SVG element
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "0 0 512 512");
+    svg.setAttribute("fill", "currentColor");
+    svg.style.width = '100%';
+    svg.style.height = '100%';
+    
+    // Create path element
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", pathData);
+    
+    // Append path to SVG
+    svg.appendChild(path);
+    
+    // Clear existing content and append SVG
+    icon.innerHTML = '';
+    icon.appendChild(svg);
+    
+    // Add default styles if none exist
+    if (!icon.hasAttribute('style')) {
+        icon.style.display = 'inline-flex';
+        icon.style.alignItems = 'center';
+        icon.style.justifyContent = 'center';
+        icon.style.width = '1em';
+        icon.style.height = '1em';
+        icon.style.fontSize = '24px';
     }
+    
+    // Mark as loaded
+    icon.classList.add('canyon-icon-loaded');
+}
 
-    // Watch for dynamically added icons (using MutationObserver)
-    if (typeof MutationObserver !== 'undefined') {
-        const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.addedNodes.length) {
-                    const newIcons = [];
-                    mutation.addedNodes.forEach(node => {
-                        if (node.nodeType === 1) { // Element node
-                            if (node.classList && node.classList.contains('Canyon-icon')) {
-                                newIcons.push(node);
-                            }
-                            if (node.querySelectorAll) {
-                                const childIcons = node.querySelectorAll('.Canyon-icon');
-                                childIcons.forEach(icon => newIcons.push(icon));
-                            }
+function cacheIcons() {
+    try {
+        const cacheData = {
+            version: CACHE_VERSION,
+            icons: iconPaths,
+            timestamp: Date.now()
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cacheData));
+    } catch (e) {
+        console.warn('Failed to cache icons', e);
+    }
+}
+
+async function fetchLatestIcons() {
+    try {
+        // Change this URL to point to your raw icons JSON file
+        const response = await fetch(`https://your-github-url.com/canyon-icons.json?version=${CACHE_VERSION}`);
+        if (response.ok) {
+            const latestIcons = await response.json();
+            if (latestIcons.version !== CACHE_VERSION) {
+                Object.assign(iconPaths, latestIcons.icons);
+                cacheIcons();
+                renderIcons(); // Re-render with updated icons
+            }
+        }
+    } catch (e) {
+        console.warn('Failed to fetch latest icons', e);
+    }
+}
+
+// Dynamic icon observer with debounce
+function setupMutationObserver() {
+    const observer = new MutationObserver(function(mutations) {
+        let needsUpdate = false;
+        
+        mutations.forEach(function(mutation) {
+            if (mutation.addedNodes.length) {
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === 1) {
+                        if (node.classList && node.classList.contains('Canyon-icon')) {
+                            needsUpdate = true;
                         }
-                    });
-                    
-                    if (newIcons.length) {
-                        // Reinitialize with only new icons
-                        const tempContainer = document.createElement('div');
-                        newIcons.forEach(icon => tempContainer.appendChild(icon.cloneNode(true)));
-                        tempContainer.querySelectorAll('.Canyon-icon').forEach(icon => {
-                            if (!icon.querySelector('svg')) {
-                                const iconName = icon.getAttribute('data-icon');
-                                const iconPath = iconPaths[iconName];
-                                
-                                if (iconPath) {
-                                    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-                                    svg.setAttribute("viewBox", "0 0 24 24");
-                                    svg.setAttribute("fill", "currentColor");
-                                    
-                                    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                                    path.setAttribute("d", iconPath);
-                                    
-                                    svg.appendChild(path);
-                                    icon.innerHTML = '';
-                                    icon.appendChild(svg);
-                                    icon.classList.add('canyon-icon-loaded');
-                                }
-                            }
-                        });
+                        if (node.querySelectorAll) {
+                            const icons = node.querySelectorAll('.Canyon-icon');
+                            if (icons.length) needsUpdate = true;
+                        }
                     }
-                }
-            });
+                });
+            }
         });
+        
+        if (needsUpdate) {
+            renderIcons();
+        }
+    });
 
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-    }
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+}
+
+// Initialize
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        initCanyonIcons();
+        setupMutationObserver();
+    });
+} else {
+    initCanyonIcons();
+    setupMutationObserver();
+}
+
+// Make init function available globally for manual updates
+window.CanyonIcons = {
+    init: initCanyonIcons,
+    refresh: renderIcons
+};
 })();

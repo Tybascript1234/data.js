@@ -8,7 +8,7 @@
                         6.5 6.5 0 109.5 16a6.471 6.471 0 004.23-1.57l.27.28v.79l5 
                         4.99L20.49 19l-4.99-5zM10 14a4 4 0 110-8 4 4 0 010 8z"/>
              </svg>`
-    // أضف أيقوناتك هنا بالاسم المطلوب
+    // أضف المزيد من الأيقونات هنا
   };
 
   function replaceIcons() {
@@ -19,10 +19,11 @@
       if (icons[name]) {
         el.innerHTML = icons[name];
         el.classList.add('Canyon-icon-loaded');
+      } else {
+        el.textContent = "Icon not found"; // إذا لم يتم العثور على الأيقونة
       }
     });
   }
 
   document.addEventListener('DOMContentLoaded', replaceIcons);
 })();
-

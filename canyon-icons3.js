@@ -1,7 +1,8 @@
 (function () {
   const BASE_URL = 'https://cdn.jsdelivr.net/npm/ionicons@6.1.2/dist/svg/';
   
-  const iconImages = {
+  // كائن يحوي روابط جميع الأيقونات (400 أيقونة)
+  const iconUrls = {
     // Basic Icons
     "add": BASE_URL + "add.svg",
     "add-circle": BASE_URL + "add-circle.svg",

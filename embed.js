@@ -2,7 +2,7 @@
   var container = document.getElementById("embed");
   if (!container) return;
 
-  var fileUrl = "https://example.com/file.js";
+  var fileUrl = "https://github.com/Tybascript1234/data.js/tree/main";
 
   fetch(fileUrl)
     .then(response => {

@@ -508,7 +508,7 @@
   };
 
  
-  // كائن لتخزين مسارات SVG بعد جلبها
+ // كائن لتخزين مسارات SVG بعد جلبها
   const iconPaths = {};
 
   async function fetchIconPath(url) {
@@ -542,6 +542,11 @@
         svg.setAttribute('viewBox', '0 0 512 512');
         svg.setAttribute('fill', 'currentColor');
         svg.setAttribute('aria-hidden', 'true');
+        
+        // تعيين الحجم الافتراضي 24px إذا لم يتم تحديد حجم
+        if (!el.style.width) el.style.width = '24px';
+        if (!el.style.height) el.style.height = '24px';
+        
         svg.style.width = '100%';
         svg.style.height = '100%';
         
@@ -577,7 +582,6 @@
     list: () => Object.keys(iconUrls),
     addIcon: (name, url) => { 
       iconUrls[name] = url;
-      // عند إضافة أيقونة جديدة، يجب جلب مسارها عند الحاجة
       delete iconPaths[name];
     },
     getIconUrl: (name) => iconUrls[name],

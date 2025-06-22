@@ -75,9 +75,9 @@
   };
 
   function injectIcons() {
-    const elements = document.querySelectorAll('.Canyon-icon');
+    const elements = document.querySelectorAll('[data-canyon-icon]');
     elements.forEach(el => {
-      const iconName = el.textContent.trim().toLowerCase();
+      const iconName = el.getAttribute('data-canyon-icon').trim().toLowerCase();
       const path = icons[iconName];
       if (path) {
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -86,15 +86,30 @@
         svg.setAttribute('aria-hidden', 'true');
         svg.innerHTML = path;
 
-        el.textContent = '';
+        // Clear existing content and preserve classes
+        while (el.firstChild) {
+          el.removeChild(el.firstChild);
+        }
+        
+        // Preserve existing classes
+        const existingClasses = el.className.split(' ').filter(c => c !== '');
+        el.className = [...existingClasses, 'canyon-icon'].join(' ');
+        
         el.appendChild(svg);
       }
     });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', injectIcons);
-  } else {
+  // Immediately invoke if DOM is already loaded
+  if (document.readyState !== 'loading') {
     injectIcons();
+  } else {
+    document.addEventListener('DOMContentLoaded', injectIcons);
   }
+
+  // Make function available for manual invocation
+  window.CanyonIcons = {
+    inject: injectIcons,
+    list: () => Object.keys(icons)
+  };
 })();
